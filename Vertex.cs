@@ -7,8 +7,8 @@ class Vertex
     public float x;
     public float y;
     public List<Vertex> neighbourhood;
-    public float cost;
     public float distance;
+    public float cost;
     public float costDistance;
     public Vertex parent;
     public bool closed;
@@ -28,7 +28,7 @@ class Vertex
 
     public void Reset()
     {
-        cost = float.MaxValue;
+        distance = float.MaxValue;
         cost = float.MaxValue;
         costDistance = float.MaxValue;
         parent = null;
@@ -36,12 +36,17 @@ class Vertex
         path = false;
     }
 
-    public void SetCostDistance(float cost, float distance, float costDistance, Vertex parent)
+    public void SetCostDistance(float cost, float costDistance, Vertex parent)
     {
         this.cost = cost;
-        this.distance = distance;
         this.costDistance = costDistance;
         this.parent = parent;
+    }
+
+    public void CalculateDestinationDistance(Vertex destination)
+    {
+        if (distance == float.MaxValue)
+            distance = CalculateDistance(destination);
     }
 
     public float CalculateDistance(Vertex other)
@@ -59,12 +64,12 @@ class Vertex
             if (neighbour.closed)
                 continue;
 
+            neighbour.CalculateDestinationDistance(destination);
             float cost = this.cost + neighbour.CalculateDistance(this);
-            float distance = neighbour.CalculateDistance(destination);
-            float costDistance = cost + distance;
+            float costDistance = cost + neighbour.distance;
 
             if (neighbour.parent == null || neighbour.costDistance > costDistance)
-                neighbour.SetCostDistance(cost, distance, costDistance, this);
+                neighbour.SetCostDistance(cost, costDistance, this);
         }
     }
 }

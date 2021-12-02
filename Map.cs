@@ -18,19 +18,19 @@ class Map
             for (int x = 0; x < width; x++)
                 map[y, x] = new Vertex(x, y);
 
-        RandomHoles(40);
+        RandomHoles(540, new Vertex[] { map[0, 0], map[height - 1, width - 1] });
 
         SetNeighbourhood();
     }
 
-    public void RandomHoles(int count)
+    public void RandomHoles(int count, Vertex[] avoid = null)
     {
         var random = new Random();
         while (count > 0)
         {
             int y = random.Next(0, height);
             int x = random.Next(0, width);
-            if (map[y, x] != null && (y != 0 || x != 0) && (y != 9 || x != 9))
+            if (map[y, x] != null && (avoid == null || !avoid.Contains(map[y, x])))
             {
                 map[y, x] = null;
                 count--;
@@ -90,11 +90,12 @@ class Map
         }
     }
 
-    List<Vertex> OPEN = new List<Vertex>();
+    public List<Vertex> searching = new List<Vertex>();
     public void FindPath(Vertex start, Vertex destination)
     {
-        start.SetCostDistance(0, start.CalculateDistance(destination), start.CalculateDistance(destination), null);
-        OPEN.Add(start);
+        start.CalculateDestinationDistance(destination);
+        start.SetCostDistance(0, start.CalculateDistance(destination), null);
+        searching.Add(start);
         while(true)
         {
             var current = BestInALL();
@@ -105,7 +106,7 @@ class Map
             current.CalculateNeighbourhood(destination);
             foreach (var neighbour in current.neighbourhood)
                 if (neighbour.parent != null && !neighbour.closed)
-                    OPEN.Add(neighbour);
+                    searching.Add(neighbour);
 
             current.closed = true;
         }
@@ -123,11 +124,19 @@ class Map
     Vertex BestInALL()
     {
         Vertex best = null;
-        foreach(var vertex in OPEN)
+        foreach(var vertex in searching)
             if (!vertex.closed && (best == null || vertex.costDistance < best.costDistance || (vertex.costDistance == best.costDistance && vertex.distance < best.distance)))
                 best = vertex;
 
         return best;
+    }
+
+    public void Reset()
+    {
+        foreach (var vertex in searching)
+            vertex.Reset();
+
+        searching.Clear();
     }
 
 }
